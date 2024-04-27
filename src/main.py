@@ -1,8 +1,6 @@
 import asyncio
 import json
 import time
-
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -22,16 +20,14 @@ from common_code.common.models import FieldDescription, ExecutionUnitTag
 from contextlib import asynccontextmanager
 
 # Imports required by the service's model
-# TODO: 1. ADD REQUIRED IMPORTS (ALSO IN THE REQUIREMENTS.TXT)
 import requests
 
 settings = get_settings()
 
 
 class MyService(Service):
-    # TODO: 2. CHANGE THIS DESCRIPTION
     """
-    This service uses Hugging Face's model hub API to directly query text-to-image AI models
+    This service uses Hugging Face's model hub API (inference API) to directly query text-to-image AI models
     """
 
     # Any additional fields must be excluded for Pydantic to work
@@ -40,14 +36,12 @@ class MyService(Service):
 
     def __init__(self):
         super().__init__(
-            # TODO: 3. CHANGE THE SERVICE NAME AND SLUG
             name="Hugging Face text-to-image",
             slug="hugging-face-text-to-image",
-            url="http://localhost:9090",
+            url=settings.service_url,
             summary=api_summary,
             description=api_description,
             status=ServiceStatus.AVAILABLE,
-            # TODO: 4. CHANGE THE INPUT AND OUTPUT FIELDS, THE TAGS AND THE HAS_AI VARIABLE
             data_in_fields=[
                 FieldDescription(
                     name="json_description",
@@ -70,24 +64,16 @@ class MyService(Service):
             ],
             tags=[
                 ExecutionUnitTag(
-                    name=ExecutionUnitTagName.NATURAL_LANGUAGE_PROCESSING,
-                    acronym=ExecutionUnitTagAcronym.NATURAL_LANGUAGE_PROCESSING,
+                    name=ExecutionUnitTagName.IMAGE_PROCESSING,
+                    acronym=ExecutionUnitTagAcronym.IMAGE_PROCESSING,
                 ),
             ],
             has_ai=True,
-            # OPTIONAL: CHANGE THE DOCS URL TO YOUR SERVICE'S DOCS
-            docs_url="https://docs.swiss-ai-center.ch/reference/core-concepts/service/",
+            docs_url="https://docs.swiss-ai-center.ch/reference/services/hugging-face-text-to-image/",
         )
         self._logger = get_logger(settings)
 
-    # TODO: 5. CHANGE THE PROCESS METHOD (CORE OF THE SERVICE)
     def process(self, data):
-        # NOTE that the data is a dictionary with the keys being the field names set in the data_in_fields
-        # The objects in the data variable are always bytes. It is necessary to convert them to the desired type
-        # before using them.
-        # raw = data["image"].data
-        # input_type = data["image"].type
-        # ... do something with the raw data
 
         try:
             json_description = json.loads(data['json_description'].data.decode('utf-8'))
@@ -177,12 +163,11 @@ async def lifespan(app: FastAPI):
         await service_service.graceful_shutdown(my_service, engine_url)
 
 
-# TODO: 6. CHANGE THE API DESCRIPTION AND SUMMARY
 api_description = """The service is used to query text-to-image AI models from the Hugging Face inference API.\n
 
  You can choose from any model available on the inference API from the [Hugging Face Hub](https://huggingface.co/models)
  that takes a text(json) as input and outputs an image.
- 
+
 It must take only one input text with the following structure:
 
 ```
@@ -203,20 +188,20 @@ It must take only one input text with the following structure:
  }
  ```
  This is used for image generation based on a description.
- 
+
  input_text example:
- 
+
  ```
  A majestic Hummingbird
  ```
 
  The model may need some time to load on Hugging face's side, you may encounter an error on your first try.
- 
+
  Helpful trick: The answer from the inference API is cached, so if you encounter a loading error try to change the
  input to check if the model is loaded.
  """
 
-api_summary = """This service is used to query text-to-image models from Hugging Face 
+api_summary = """This service is used to query text-to-image models from Hugging Face
 """
 
 # Define the FastAPI application with information
