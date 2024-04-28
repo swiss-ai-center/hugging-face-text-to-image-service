@@ -168,7 +168,7 @@ api_description = """The service is used to query text-to-image AI models from t
  You can choose from any model available on the inference API from the [Hugging Face Hub](https://huggingface.co/models)
  that takes a text(json) as input and outputs an image.
 
-It must take only one input text with the following structure:
+The model must take only one input text with the following structure:
 
 ```
 {
